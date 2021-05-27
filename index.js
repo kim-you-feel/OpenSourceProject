@@ -10,44 +10,10 @@ var userTime ={};
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-/*
-app.get('/keyboard', (req, res) => {
-  const data = {'type': 'text'}
-  res.json(data);
-});
-
-app.post('/message', (req, res) => {
-  const question = req.body.userRequest.utterance.trim();
-  const goMain = '처음으로';
-  if (question == "테스트") {
-    const data = {
-      'version': '2.0',
-      'template': {
-	    'outputs': [{
-	      'simpleText': {
-	        'text': '테스트'
-	      }
-	    }],
-	    'quickReplies': [{
-	      'label': goMain,
-	      'action': 'message',
-	      'messageText': goMain
-	    }]
-      }
-    }
-    res.json(data); 
-  }else{
-    const data ={};
-    res.json(data);
-
-  } 
-});
-*/
-app.post('/base', (req,res) =>{
+app.post('/Keyword', (req,res) =>{
   const userId = req.body.userRequest.user.id;
+  var xid;
   var add = 0;
-  userKeyword[userId] = req.body.action.params.setKeyword;
-  userTime[userId] = req.body.action.detailParams.setTime.origin;
   
   for(var i = 0; i < userDB.length; i++){
     if(userDB[i] == userId){
@@ -61,13 +27,82 @@ app.post('/base', (req,res) =>{
     userDB[userDB.length+1] = userId;
   }
 
+  if(userKeyword[userId] != null){
+    xid = "60afbfd997e00171aadc87fe";
+  }else{
+    xid = "60afc0d997e00171aadc8801";
+  }
+  console.log(xid);
   const setting={
     version: "2.0",
     template: {
       outputs: [
         {
           basicCard: {
-            description: `${userKeyword[userId]} 소식을 ${userTime[userId]}에 전해드리겠습니다.`,
+            description: "키워드를 설정하시겠습니까?",
+            buttons: [
+              {
+                action: "block",
+                label: "예",
+                blockId:xid
+              },
+              {
+                action: "block",
+                label: "아니오",
+                blockId:"60afc1369657424ac11db192"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  };
+
+  res.json(setting);
+
+});
+
+app.post('/KeywordQ', (req,res) =>{
+
+  const setting={
+    version: "2.0",
+    template: {
+      outputs: [
+        {
+          basicCard: {
+            description: "키워드가 이미 존재합니다. 변경하시겠습니까?",
+            buttons: [
+              {
+                action: "block",
+                label: "예",
+                blockId:"60afc0d997e00171aadc8801"
+              },
+              {
+                action: "block",
+                label: "아니오",
+                blockId:"60afc1369657424ac11db192"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  };
+
+  res.json(setting);
+});
+
+app.post('/setKeyword', (req,res)=>{
+  const userId = req.body.userRequest.user.id;
+  userKeyword[userId] = req.body.action.params.setKeyword;
+
+  const setting={
+    version: "2.0",
+    template: {
+      outputs: [
+        {
+          basicCard: {
+            description: `${userKeyword[userId]} 소식을 전해드리겠습니다.`,
             buttons: [
               {
                 action: "block",
@@ -83,115 +118,11 @@ app.post('/base', (req,res) =>{
 
   res.json(setting);
 
-});
-
-/*app.post('/keywordChange', (req,res)=>{
-  const userId = req.body.userRequest.user.id;
-  
-  if(userKeyword[userId] != null){
-    const oldKeyword = userKeyword[userId];
-    userKeyword[userId] = req.body.action.params.setKeyword;
-
-    const data={
-      version: "2.0",
-      template: {
-        outputs: [
-          {
-            basicCard: {
-              description: `키워드를 ${oldKeyword}에서 ${userKeyword[userId]}로 변경하셨습니다.`,
-            }
-          }
-        ]
-      }
-    };
-
-    res.json(data);
-  }else{
-    const data = {
-      'version': '2.0',
-      'template': {
-        'outputs': [{
-          'simpleText': {
-            'text': '키워드를 먼저 설정하십시오'
-          }
-        }]
-      }
-    }
-    res.json(data); 
-  }
-
-})*/
-
-/*
-app.post('/timeChange', (req,res)=>{
-  const userId = req.body.userRequest.user.id;
-  
-  const setting={
-    version: "2.0",
-    template: {
-      outputs: [
-        {
-          basicCard: {
-            description: "시간을 변경하시겠습니까?",
-            buttons: [
-              {
-                action: "block",
-                label: "네",
-                blockId:"60ab7dd1e0891e661e4a9f02"
-              }
-              ,
-              {
-                action: "block",
-                label: "아니오",
-                blockId:"60afb72c98179667c00efb29"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  };
-
-  res.json(setting);
-  
-  res.json(setting);
-  if(userTime[userId] != null){
-    const oldTime = userTime[userId];
-    userTime[userId] = req.body.action.detailParams.setTime.origin;
-
-    const data={
-      version: "2.0",
-      template: {
-        outputs: [
-          {
-            basicCard: {
-              description: `시간을 ${oldTime}에서 ${userTime[userId]}로 변경하셨습니다.`,
-            }
-          }
-        ]
-      }
-    };
-    
-    res.json(data);
-  }else{
-    const data = {
-      'version': '2.0',
-      'template': {
-        'outputs': [{
-          'simpleText': {
-            'text': '초기 시간 설정을 하십시오.'
-          }
-        }]
-      }
-    }
-    res.json(data); 
-  }
 })
-*/
 
 app.post('/alim', (req,res)=>{
   const userId = req.body.userRequest.user.id;
-
+  
   if(userKeyword[userId].length != 0){
     const ar={
       'version': '2.0',
