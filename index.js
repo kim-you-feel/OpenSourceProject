@@ -9,6 +9,7 @@ var userTime ={};
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+
 /*
 app.get('/keyboard', (req, res) => {
   const data = {'type': 'text'}
@@ -46,7 +47,7 @@ app.post('/base', (req,res) =>{
   const userId = req.body.userRequest.user.id;
   var add = 0;
   userKeyword[userId] = req.body.action.params.setKeyword;
-  userTime[userId] = req.body.action.params.setTime;
+  userTime[userId] = req.body.action.detailParams.setTime.origin;
   
   for(var i = 0; i < userDB.length; i++){
     if(userDB[i] == userId){
@@ -79,66 +80,144 @@ app.post('/base', (req,res) =>{
       ]
     }
   };
+
   res.json(setting);
 
 });
 
-app.post('/keywordChange', (req,res)=>{
+/*app.post('/keywordChange', (req,res)=>{
   const userId = req.body.userRequest.user.id;
-  const oldKeyword = userKeyword[userId];
-  userKeyword[userId] = req.body.action.params.setKeyword;
+  
+  if(userKeyword[userId] != null){
+    const oldKeyword = userKeyword[userId];
+    userKeyword[userId] = req.body.action.params.setKeyword;
 
-  const data={
-    version: "2.0",
-    template: {
-      outputs: [
-        {
-          basicCard: {
-            description: `키워드를 ${oldKeyword}에서 ${userKeyword[userId]}로 변경하셨습니다.`,
+    const data={
+      version: "2.0",
+      template: {
+        outputs: [
+          {
+            basicCard: {
+              description: `키워드를 ${oldKeyword}에서 ${userKeyword[userId]}로 변경하셨습니다.`,
+            }
           }
-        }
-      ]
-    }
-  };
-  res.json(data);
-})
+        ]
+      }
+    };
 
+    res.json(data);
+  }else{
+    const data = {
+      'version': '2.0',
+      'template': {
+        'outputs': [{
+          'simpleText': {
+            'text': '키워드를 먼저 설정하십시오'
+          }
+        }]
+      }
+    }
+    res.json(data); 
+  }
+
+})*/
+
+/*
 app.post('/timeChange', (req,res)=>{
   const userId = req.body.userRequest.user.id;
-  const oldTime = userKeyword[userId];
-  userTime[userId] = req.body.action.params.setTime;
-
-  const data={
+  
+  const setting={
     version: "2.0",
     template: {
       outputs: [
         {
           basicCard: {
-            description: `키워드를 ${oldTime}에서 ${userTime[userId]}로 변경하셨습니다.`,
+            description: "시간을 변경하시겠습니까?",
+            buttons: [
+              {
+                action: "block",
+                label: "네",
+                blockId:"60ab7dd1e0891e661e4a9f02"
+              }
+              ,
+              {
+                action: "block",
+                label: "아니오",
+                blockId:"60afb72c98179667c00efb29"
+              }
+            ]
           }
         }
       ]
     }
   };
+
+  res.json(setting);
   
-  res.json(data);
+  res.json(setting);
+  if(userTime[userId] != null){
+    const oldTime = userTime[userId];
+    userTime[userId] = req.body.action.detailParams.setTime.origin;
+
+    const data={
+      version: "2.0",
+      template: {
+        outputs: [
+          {
+            basicCard: {
+              description: `시간을 ${oldTime}에서 ${userTime[userId]}로 변경하셨습니다.`,
+            }
+          }
+        ]
+      }
+    };
+    
+    res.json(data);
+  }else{
+    const data = {
+      'version': '2.0',
+      'template': {
+        'outputs': [{
+          'simpleText': {
+            'text': '초기 시간 설정을 하십시오.'
+          }
+        }]
+      }
+    }
+    res.json(data); 
+  }
 })
+*/
 
 app.post('/alim', (req,res)=>{
   const userId = req.body.userRequest.user.id;
 
-  const ar={
-    'version': '2.0',
-    'template': {
-    'outputs': [{
-      "simpleText":{
-        "text": `${userKeyword[userId]}입니다.`
+  if(userKeyword[userId].length != 0){
+    const ar={
+      'version': '2.0',
+      'template': {
+      'outputs': [{
+        "simpleText":{
+          "text": `${userKeyword[userId]}입니다.`
+      }
+        }]
+      } 
     }
-      }]
-    } 
-  }
 
-  res.json(ar);
+    res.json(ar);
+  } else{
+    const ar={
+      'version': '2.0',
+      'template': {
+      'outputs': [{
+        "simpleText":{
+          "text": "키워드가 없습니다."
+      }
+        }]
+      } 
+    }
+    res.json(ar);
+  }
 
 })
 
@@ -185,32 +264,32 @@ app.post('/news', (req,res)=>{
       ex={
         'version': '2.0',
         'template': {
-        'outputs': [{
-          "listCard":{
-            "header":{
-              "title":`${userKeyword[userId]}에 대한 기사입니다.`
-            },
-            "items":[
-              {
-                "title": arrayTitle[0],
-                "link":{
-                  "web": arrayLink[0]
-                }
+          'outputs': [{
+            "listCard":{
+              "header":{
+                "title":`${userKeyword[userId]}에 대한 기사입니다.`
               },
-              {
-                "title": arrayTitle[1],
-                "link":{
-                  "web": arrayLink[1]
+              "items":[
+                {
+                  "title": arrayTitle[0],
+                  "link":{
+                    "web": arrayLink[0]
+                  }
+                },
+                {
+                  "title": arrayTitle[1],
+                  "link":{
+                    "web": arrayLink[1]
+                  }
+                },
+                {
+                  "title": arrayTitle[2],
+                  "link":{
+                    "web": arrayLink[2]
+                  }
                 }
-              },
-              {
-                "title": arrayTitle[2],
-                "link":{
-                  "web": arrayLink[2]
-                }
-              }
-            ]
-          }
+              ]
+            }
           }]
         } 
       }
@@ -227,6 +306,8 @@ app.post('/news', (req,res)=>{
           }]
         } 
       }
+      userKeyword[userId] = null;
+      userTime[userId] = null;
       res.json(ex);
     }
   })
