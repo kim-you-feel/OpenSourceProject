@@ -165,7 +165,7 @@ app.post('/news', (req,res)=>{
   const option = {
     query  :qr,
     start  :1,
-    display:3,
+    display:10,
     sort   :'sim'
   }
   request.get({
@@ -177,20 +177,26 @@ app.post('/news', (req,res)=>{
     }
   },function(err, result, body) {
     data = JSON.parse(body);
-    data.items.forEach(element => {
-      arrayLink.push(element.link);
-    });
     data.items.forEach(element =>{
-      let title = element.title.replace(removeStrings[0],"");
-      for(let i = 0; i < removeStrings.length; i++){
-        if(title.indexOf(removeStrings[i]) != -1)
-        {
-          title = title.replace(removeStrings[i], "");
-          i--;
+      let pubDate = element.pubDate;
+      if(Date.now() - 86400000 < Date.parse(pubDate) && Date.parse(pubDate) < Date.now()){
+        arrayLink.push(element.link);
+        console.log(element.title);
+        let title = element.title.replace(removeStrings[0],"");
+        for(let i = 0; i < removeStrings.length; i++){
+          if(title.indexOf(removeStrings[i]) != -1)
+          {
+            title = title.replace(removeStrings[i], "");
+            i--;
+            console.log("1");
+          }
         }
+          arrayTitle.push(title);
       }
-      arrayTitle.push(title);
+      
     })
+    
+
     if(arrayLink.length != 0){
       ex={
         'version': '2.0',
@@ -224,7 +230,6 @@ app.post('/news', (req,res)=>{
           }]
         } 
       }
-      console.log(data);
       res.json(ex);
     }else{
       ex={
