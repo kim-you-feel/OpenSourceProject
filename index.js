@@ -6,6 +6,7 @@ var client_secret = 'FxmVqQSuhG';
 var userDB = {};
 var userKeyword = {};
 var userTime ={};
+var userNumber = {};
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -95,19 +96,20 @@ app.post('/KeywordQ', (req,res) =>{
 app.post('/setKeyword', (req,res)=>{
   const userId = req.body.userRequest.user.id;
   userKeyword[userId] = req.body.action.params.setKeyword;
+  userNumber[userId] = 0;
 
   const setting={
-    version: "2.0",
-    template: {
-      outputs: [
+    'version': "2.0",
+    'template': {
+      'outputs': [
         {
-          basicCard: {
-            description: `${userKeyword[userId]} 소식을 전해드리겠습니다.`,
-            buttons: [
+          'basicCard': {
+            'description': `${userKeyword[userId]} 소식을 전해드리겠습니다.`,
+            'buttons': [
               {
-                action: "block",
-                label: "OK",
-                blockId:"60ab7dd1e0891e661e4a9f02"
+                'action': "block",
+                'label': "OK",
+                'blockId':"60ab7dd1e0891e661e4a9f02"
               }
             ]
           }
@@ -162,6 +164,7 @@ app.post('/news', (req,res)=>{
   let arrayTitle = [];
   let removeStrings = ["&Hat;", "&apos;", "&gt;", "&lt;", "&semi;", "&amp;", "&quot;", "&num;","<b>", "</b>"];
   
+
   const option = {
     query  :qr,
     start  :1,
@@ -181,14 +184,12 @@ app.post('/news', (req,res)=>{
       let pubDate = element.pubDate;
       if(Date.now() - 86400000 < Date.parse(pubDate) && Date.parse(pubDate) < Date.now()){
         arrayLink.push(element.link);
-        console.log(element.title);
         let title = element.title.replace(removeStrings[0],"");
         for(let i = 0; i < removeStrings.length; i++){
           if(title.indexOf(removeStrings[i]) != -1)
           {
             title = title.replace(removeStrings[i], "");
             i--;
-            console.log("1");
           }
         }
           arrayTitle.push(title);
@@ -197,7 +198,7 @@ app.post('/news', (req,res)=>{
     })
     
 
-    if(arrayLink.length != 0){
+    if(arrayLink.length > userNumber[userId] + 3){
       ex={
         'version': '2.0',
         'template': {
@@ -208,22 +209,29 @@ app.post('/news', (req,res)=>{
               },
               "items":[
                 {
-                  "title": arrayTitle[0],
+                  "title": arrayTitle[userNumber[userId]],
                   "link":{
-                    "web": arrayLink[0]
+                    "web": arrayLink[userNumber[userId]++]
                   }
                 },
                 {
-                  "title": arrayTitle[1],
+                  "title": arrayTitle[userNumber[userId]],
                   "link":{
-                    "web": arrayLink[1]
+                    "web": arrayLink[userNumber[userId]++]
                   }
                 },
                 {
-                  "title": arrayTitle[2],
+                  "title": arrayTitle[userNumber[userId]],
                   "link":{
-                    "web": arrayLink[2]
+                    "web": arrayLink[userNumber[userId]++]
                   }
+                }
+              ],
+              "buttons" :[
+                {
+                  "label" : "더 보기",
+                  "action" : "block",
+                  "blockId" : "60ab7dd1e0891e661e4a9f02"
                 }
               ]
             }
@@ -253,4 +261,3 @@ app.post('/news', (req,res)=>{
 app.listen(3000, function () {
   console.log('node on 3000!!');
 });
-
