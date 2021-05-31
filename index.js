@@ -1,12 +1,19 @@
 const express = require('express');
 const app = express();
+var Twitter = require('twitter');
 var cron = require('node-cron');
-var client_id = 'EM8IgHPw_W2OsvVwmmxA';
-var client_secret = 'FxmVqQSuhG';
+const client_id = 'EM8IgHPw_W2OsvVwmmxA';
+const client_secret = 'FxmVqQSuhG';
+const APIKEY = 'vMi6YAZEtB2FdkIjAuW4mdfpn';
+const ACCESSTOKEN1 = '1352505233415446528-FZoj6bHFirqmq6xDoiLxHCrIo4FNYm';
+const BEARERTOKEN = 'AAAAAAAAAAAAAAAAAAAAAGKLQAEAAAAA98gZSv417FwhovvbsJortg%2FygSM%3DE1ODm9TiUIwILJf7KuRdUJJKKiiYtham1kJevNoyY19bCfeL7P';
+const ACCESSTOKEN2 = '1352505233415446528-Zv7fz7rKExEGwDnRk52chwFQsti4Wl';
+const ACCESSTOKENS = 'LsSaHCh1uuS64CPIp0hp7aPKosBv5xqVvJjtDLj0bCuG9';
 var userDB = {};
 var userKeyword = {};
 var userTime ={};
 var userNumber = {};
+var userNumbert = {};
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -97,6 +104,7 @@ app.post('/setKeyword', (req,res)=>{
   const userId = req.body.userRequest.user.id;
   userKeyword[userId] = req.body.action.params.setKeyword;
   userNumber[userId] = 0;
+  userNumbert[userId] = 0;
 
   const setting={
     'version': "2.0",
@@ -250,13 +258,77 @@ app.post('/news', (req,res)=>{
           }]
         } 
       }
-      userKeyword[userId] = null;
-      userTime[userId] = null;
       res.json(ex);
     }
   })
 });
 
+app.post('/twitter', (req,res) =>{
+  let twitterText = [];
+  const userId = req.body.userRequest.user.id;
+  var request = require('request');
+    var options = {
+      'method': 'GET',
+      'url': 'https://api.twitter.com/2/tweets/search/recent?query='+ encodeURI(userKeyword[userId]),
+      'headers': {
+        'Authorization': `Bearer ${BEARERTOKEN}`
+      }
+    };
+
+    request(options, function (error, response) {
+      if (error) throw new Error(error);
+      dat = JSON.parse(response.body);
+      dat.data.forEach(element =>{
+        txt = element.text;
+        twitterText.push(txt);
+      })
+      if(twitterText.length > userNumbert[userId] + 3){
+        ex={
+          'version': '2.0',
+          'template': {
+            'outputs': [{
+              "listCard":{
+                "header":{
+                  "title":`${userKeyword[userId]}에 대한 트윗입니다.`
+                },
+                "items":[
+                  {
+                    "title": twitterText[userNumbert[userId]++]
+                  },
+                  {
+                    "title": twitterText[userNumbert[userId]++]
+                  },
+                  {
+                    "title": twitterText[userNumbert[userId]++]
+                  }
+                ],
+                "buttons" :[
+                  {
+                    "label" : "더 보기",
+                    "action" : "block",
+                    "blockId" : "60b4b685e0891e661e4acba6"
+                  }
+                ]
+              }
+            }]
+          } 
+        }
+        res.json(ex);
+      } else{
+        ex={
+          'version': '2.0',
+          'template': {
+          'outputs': [{
+              'simpleText': {
+                'text':"트윗이 없습니다."
+            }
+            }]
+          } 
+        }
+        res.json(ex);
+      }
+    });
+})
 
 app.listen(3000, function () {
   console.log('node on 3000!!');
