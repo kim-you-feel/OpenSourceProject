@@ -265,6 +265,7 @@ app.post('/news', (req,res)=>{
 
 app.post('/twitter', (req,res) =>{
   let twitterText = [];
+  let twitterLink = [];
   const userId = req.body.userRequest.user.id;
   var request = require('request');
     var options = {
@@ -280,8 +281,11 @@ app.post('/twitter', (req,res) =>{
       dat = JSON.parse(response.body);
       dat.data.forEach(element =>{
         txt = element.text;
+        Link = `https://twitter.com/${element.author_id}/status/${element.id}`
         twitterText.push(txt);
+        twitterLink.push(Link);
       })
+
       if(twitterText.length > userNumbert[userId] + 3){
         ex={
           'version': '2.0',
@@ -293,13 +297,22 @@ app.post('/twitter', (req,res) =>{
                 },
                 "items":[
                   {
-                    "title": twitterText[userNumbert[userId]++]
+                    "title": twitterText[userNumbert[userId]],
+                    "link":{
+                      "web": twitterLink[userNumbert[userId]++]
+                    }
                   },
                   {
-                    "title": twitterText[userNumbert[userId]++]
+                    "title": twitterText[userNumbert[userId]],
+                    "link":{
+                      "web": twitterLink[userNumbert[userId]++]
+                    }
                   },
                   {
-                    "title": twitterText[userNumbert[userId]++]
+                    "title": twitterText[userNumbert[userId]],
+                    "link":{
+                      "web": twitterLink[userNumbert[userId]++]
+                    }
                   }
                 ],
                 "buttons" :[
