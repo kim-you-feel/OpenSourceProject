@@ -11,7 +11,6 @@ const ACCESSTOKEN2 = '1352505233415446528-Zv7fz7rKExEGwDnRk52chwFQsti4Wl';
 const ACCESSTOKENS = 'LsSaHCh1uuS64CPIp0hp7aPKosBv5xqVvJjtDLj0bCuG9';
 var userDB = {};
 var userKeyword = {};
-var userTime ={};
 var userNumber = {};
 var userNumbert = {};
 
@@ -69,6 +68,8 @@ app.post('/Keyword', (req,res) =>{
   res.json(setting);
 
 });
+
+
 
 app.post('/KeywordQ', (req,res) =>{
 
@@ -162,14 +163,75 @@ app.post('/alim', (req,res)=>{
 
 })
 
+app.post('/sosic' , (req,res)=>{
+
+  const setting={
+    'version': "2.0",
+    'template': {
+      'outputs': [
+        {
+          'simpleText': {
+            'text': "어떤 소식을 받으실 건가요?",
+          }
+        }
+      ],
+      'quickReplies': [
+        {
+          'label' : "유튜브",
+          'action' : "block",
+          'blockId' : "60a65fde9cf5b44e9f8056d5"
+        },
+        {
+          'label' : "네이버 뉴스",
+          'action' : "block",
+          'blockId' : "60ab7dd1e0891e661e4a9f02"
+        },
+        {
+          'label' : "트위터",
+          'action' : "block",
+          'blockId' : "60b4b685e0891e661e4acba6"
+        }
+      ]
+    }
+  };
+
+  res.json(setting);
+  
+})
+
+app.post('/exercise', (req,res)=>{
+  const ar={
+    'version': '2.0',
+    'template': {
+      'outputs': [{
+        "simpleText":{
+          "text": "키워드가 없습니다."
+        }
+      },
+      {
+        "simpleText":{
+          "text": "키워드가 없습니다."
+        }
+      },
+      {
+        "simpleText":{
+          "text": "키워드가 없습니다."
+        }
+      }]
+    } 
+  }
+
+  res.json(ar);
+
+})
+
 app.post('/news', (req,res)=>{
   const request = require('request');
   const userId = req.body.userRequest.user.id;
   let ex;
   let data;
   let qr = userKeyword[userId];
-  let arrayLink = [];
-  let arrayTitle = [];
+  let responseContent_na =[];
   let removeStrings = ["&Hat;", "&apos;", "&gt;", "&lt;", "&semi;", "&amp;", "&quot;", "&num;","<b>", "</b>"];
   
 
@@ -191,22 +253,23 @@ app.post('/news', (req,res)=>{
     data.items.forEach(element =>{
       let pubDate = element.pubDate;
       if(Date.now() - 86400000 < Date.parse(pubDate) && Date.parse(pubDate) < Date.now()){
-        arrayLink.push(element.link);
-        let title = element.title.replace(removeStrings[0],"");
+        let title_na = element.title.replace(removeStrings[0],"");
         for(let i = 0; i < removeStrings.length; i++){
-          if(title.indexOf(removeStrings[i]) != -1)
+          if(title_na.indexOf(removeStrings[i]) != -1)
           {
-            title = title.replace(removeStrings[i], "");
+            title_na = title_na.replace(removeStrings[i], "");
             i--;
           }
         }
-          arrayTitle.push(title);
+        responseContent_na.push({
+          title: title_na,
+          Link: element.Link
+        })
       }
       
     })
-    
 
-    if(arrayLink.length > userNumber[userId] + 3){
+    if(responseContent_na.length > 1){
       ex={
         'version': '2.0',
         'template': {
@@ -216,31 +279,12 @@ app.post('/news', (req,res)=>{
                 "title":`${userKeyword[userId]}에 대한 기사입니다.`
               },
               "items":[
-                {
-                  "title": arrayTitle[userNumber[userId]],
-                  "link":{
-                    "web": arrayLink[userNumber[userId]++]
+                ... responseContent_na.slice(0, 5).map((data) => ({
+                  title: data.title,
+                  link: {
+                    web: data.Link
                   }
-                },
-                {
-                  "title": arrayTitle[userNumber[userId]],
-                  "link":{
-                    "web": arrayLink[userNumber[userId]++]
-                  }
-                },
-                {
-                  "title": arrayTitle[userNumber[userId]],
-                  "link":{
-                    "web": arrayLink[userNumber[userId]++]
-                  }
-                }
-              ],
-              "buttons" :[
-                {
-                  "label" : "더 보기",
-                  "action" : "block",
-                  "blockId" : "60ab7dd1e0891e661e4a9f02"
-                }
+                }))
               ]
             }
           }]
@@ -263,9 +307,10 @@ app.post('/news', (req,res)=>{
   })
 });
 
+
+
 app.post('/twitter', (req,res) =>{
-  let twitterText = [];
-  let twitterLink = [];
+  let responseContent_tw = [];
   const userId = req.body.userRequest.user.id;
   var request = require('request');
     var options = {
@@ -275,18 +320,17 @@ app.post('/twitter', (req,res) =>{
         'Authorization': `Bearer ${BEARERTOKEN}`
       }
     };
-
     request(options, function (error, response) {
       if (error) throw new Error(error);
       dat = JSON.parse(response.body);
       dat.data.forEach(element =>{
-        txt = element.text;
-        Link = `https://twitter.com/${element.author_id}/status/${element.id}`
-        twitterText.push(txt);
-        twitterLink.push(Link);
+        responseContent_tw.push({
+          title: element.text,
+          Link: `https://twitter.com/${element.author_id}/status/${element.id}`
+        })
       })
 
-      if(twitterText.length > userNumbert[userId] + 3){
+      if(responseContent_tw.length > 1){
         ex={
           'version': '2.0',
           'template': {
@@ -296,31 +340,12 @@ app.post('/twitter', (req,res) =>{
                   "title":`${userKeyword[userId]}에 대한 트윗입니다.`
                 },
                 "items":[
-                  {
-                    "title": twitterText[userNumbert[userId]],
-                    "link":{
-                      "web": twitterLink[userNumbert[userId]++]
+                  ... responseContent_tw.slice(0, 5).map((data) => ({
+                    title: data.title,
+                    link: {
+                      web: data.Link
                     }
-                  },
-                  {
-                    "title": twitterText[userNumbert[userId]],
-                    "link":{
-                      "web": twitterLink[userNumbert[userId]++]
-                    }
-                  },
-                  {
-                    "title": twitterText[userNumbert[userId]],
-                    "link":{
-                      "web": twitterLink[userNumbert[userId]++]
-                    }
-                  }
-                ],
-                "buttons" :[
-                  {
-                    "label" : "더 보기",
-                    "action" : "block",
-                    "blockId" : "60b4b685e0891e661e4acba6"
-                  }
+                  }))
                 ]
               }
             }]
